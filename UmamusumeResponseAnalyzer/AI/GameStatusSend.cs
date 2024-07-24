@@ -125,17 +125,7 @@ namespace UmamusumeResponseAnalyzer.AI
             isQieZhe = @event.data.chara_info.chara_effect_id_array.Contains(7);
             isPositiveThinking = @event.data.chara_info.chara_effect_id_array.Contains(25);
             ptScoreRate = 2.1;
-            skillPt = 0;
-            try
-            {
-                ptScoreRate = isQieZhe ? 2.3 : 2.1;
-                double ptScore = AiUtils.calculateSkillScore(@event, ptScoreRate);
-                skillPt = (int)(ptScore / ptScoreRate);
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.MarkupLine("获取当前技能分失败" + ex.Message);
-            }
+            
 
             skillScore = 0;
 

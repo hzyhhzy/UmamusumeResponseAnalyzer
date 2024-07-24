@@ -320,11 +320,10 @@ namespace UmamusumeResponseAnalyzer
 
             if (ctx.Request.RawUrl == "/notify/response")
             {
-#if DEBUG
                 Directory.CreateDirectory("packets");
                 File.WriteAllBytes($@"./packets/{DateTime.Now:yy-MM-dd HH-mm-ss-fff}R.bin", buffer);
                 File.WriteAllText($@"./packets/Turn{GameStats.currentTurn}_{DateTime.Now:yy-MM-dd HH-mm-ss-fff}R.json", JObject.Parse(MessagePackSerializer.ConvertToJson(buffer)).ToString());
-#endif
+
                 if (Config.Get(Localization.Config.I18N_SaveResponseForDebug))
                 {
                     var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UmamusumeResponseAnalyzer", "packets");
@@ -347,10 +346,9 @@ namespace UmamusumeResponseAnalyzer
             }
             else if (ctx.Request.RawUrl == "/notify/request")
             {
-#if DEBUG
                 Directory.CreateDirectory("packets");
                 File.WriteAllText($@"./packets/Turn{GameStats.currentTurn}_{DateTime.Now:yy-MM-dd HH-mm-ss-fff}Q.json", JObject.Parse(MessagePackSerializer.ConvertToJson(buffer.AsMemory()[170..])).ToString());
-#endif
+
                 _ = Task.Run(() => ParseRequest(buffer[170..]));
             }
             else if (ctx.Request.RawUrl == "/notify/ping")

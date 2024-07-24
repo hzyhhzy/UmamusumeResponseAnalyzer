@@ -137,6 +137,10 @@ namespace UmamusumeResponseAnalyzer.Handler
             var totalValueWithPt = totalValue + @event.data.chara_info.skill_point;
             var totalValueWithHalfPt = totalValue + 0.5 * @event.data.chara_info.skill_point;
             AnsiConsole.MarkupLine($"[aqua]总属性：{totalValue}[/]\t[aqua]总属性+0.5*pt：{totalValueWithHalfPt}[/]");
+            var npc_count= @event.data.chara_info.evaluation_info_array.Count(x => (x.target_id>1000 && x.target_id < 2000));
+            var npc_appear_count = @event.data.home_info.command_info_array.Sum(x => x.training_partner_array.Count(x => (x > 1000 && x < 2000)));
+            AnsiConsole.MarkupLine($"NPC个数：[aqua]{npc_appear_count}/{npc_count}[/]");
+
 
             #region LArc
             //计算训练等级

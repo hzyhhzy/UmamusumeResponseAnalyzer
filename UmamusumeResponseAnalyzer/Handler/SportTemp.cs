@@ -75,7 +75,8 @@ namespace UmamusumeResponseAnalyzer.Handler
             else
             {
                 //初始化TurnStats
-                GameStats.whichScenario = @event.data.chara_info.scenario_id;
+                GameStats.whichScenario = @event.data.chara_info.scenario_id; 
+                GameStats.currentTurn = turn.Turn;
                 GameStats.stats[turn.Turn] = new TurnStats();
                 EventLogger.Update(@event);
             }
