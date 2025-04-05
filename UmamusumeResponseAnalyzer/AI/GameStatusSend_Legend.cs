@@ -29,6 +29,8 @@ namespace UmamusumeResponseAnalyzer.AI
     public class GameStatusSend_Legend
     {
         public bool islegal;//是否为有效的回合数据
+        public int scenarioId;  // 剧本编号
+        public string protocolVersion; // 通信数据版本
 
         public int umaId;//马娘编号，见KnownUmas.cpp
         public int umaStar;//几星
@@ -104,6 +106,9 @@ namespace UmamusumeResponseAnalyzer.AI
         public GameStatusSend_Legend(Gallop.SingleModeCheckEventResponse @event)
         {
             islegal = true;
+            scenarioId = 10;
+            protocolVersion = "250405";
+
             stage = Handlers.GetCommandInfoStage_legend(@event);
             if (stage == 0)
             {
