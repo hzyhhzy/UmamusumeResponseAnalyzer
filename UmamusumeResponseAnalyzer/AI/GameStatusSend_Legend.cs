@@ -503,9 +503,50 @@ namespace UmamusumeResponseAnalyzer.AI
                 }
                 else if (lg_mainColor == 2)
                 {
-                    foreach(var f in lg.masterly_bonus_info.info_9048.friend_gauge_array)
+                    //判断npc是哪个属性。根据r卡训练来查找，最多允许一个查不到
+                    var npcIdToTrain=new Dictionary<int, int>();
+                    foreach (var f in lg.masterly_bonus_info.info_9048.friend_gauge_array)
                     {
-                        var pid = f.training_partner_id <= 6 ? f.training_partner_id - 1 : GameGlobal.ToTrainIndex[Database.Names.GetRSupportCardTypeByCharaId(f.training_partner_id)] + 10;
+                        if(f.training_partner_id > 1000)
+                        {
+                            var c = Database.Names.GetRSupportCardTypeByCharaId(f.training_partner_id);
+                            c = c < 0 ? -1 : GameGlobal.ToTrainIndex[c];//未知是-1
+
+                            npcIdToTrain.Add(f.training_partner_id,c);
+
+                        }
+                    }
+                    if(npcIdToTrain.Count != 5)
+                    {
+                        throw new Exception($"NPC不是5个");
+                    }
+                    var unknownCount = npcIdToTrain.Count(x => x.Value < 0);
+                    if (unknownCount >= 2)
+                    {
+                        AnsiConsole.MarkupLine("[red]不少于2个NPC无法获取属性，无法运行ai，请及时更新数据[/]");
+                        islegal=false;
+                        return;
+                    }
+
+                    if (unknownCount == 1)
+                    {
+                        var unknownId = npcIdToTrain.First(x => x.Value < 0).Key;
+                        for (var i = 0; i < 5; i++)
+                        {
+                            if (npcIdToTrain.Count(x => x.Value == i) == 0)
+                            {
+                                npcIdToTrain[unknownId] = i;
+                                if (turn == 36)
+                                {
+                                    AnsiConsole.MarkupLine($"[yellow]有1个NPC(id={unknownId})无法获取属性，已推断为{GameGlobal.TrainNamesSimple[GameGlobal.TrainIds[i]]}，建议及时更新数据[/]");
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (var f in lg.masterly_bonus_info.info_9048.friend_gauge_array)
+                    {
+                        var pid = f.training_partner_id <= 6 ? f.training_partner_id - 1 : npcIdToTrain[f.training_partner_id] + 10;
                         lg_red_friendsGauge[pid] = f.gauge_value;
                         lg_red_friendsLv[pid] = f.level;
                     }

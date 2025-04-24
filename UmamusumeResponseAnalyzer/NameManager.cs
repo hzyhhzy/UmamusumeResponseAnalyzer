@@ -63,6 +63,10 @@ namespace UmamusumeResponseAnalyzer
         //找到对应角色的r卡种类
         public int GetRSupportCardTypeByCharaId(int charaId)
         {
+            if (!names.Values
+                .OfType<SupportCardName>()
+                .Any(card => card.Id >= 10000 && card.Id <= 12000 && card.CharaId == charaId))
+                return -1;
             var matchingCards = names.Values
                 .OfType<SupportCardName>()
                 .Where(card => card.Id >= 10000 && card.Id <= 12000 && card.CharaId == charaId)
