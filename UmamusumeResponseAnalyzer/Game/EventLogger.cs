@@ -5,6 +5,7 @@ using System.Globalization;
 using UmamusumeResponseAnalyzer;
 using UmamusumeResponseAnalyzer.Entities;
 using UmamusumeResponseAnalyzer.Handler;
+using static UmamusumeResponseAnalyzer.Localization.Game;
 
 namespace UmamusumeResponseAnalyzer.Game
 {
@@ -130,6 +131,7 @@ namespace UmamusumeResponseAnalyzer.Game
         public static List<int> InheritStats;   // 两次继承属性
         public static Dictionary<int, SkillTips> lastSkillTips;   // 上一次的Hint表
         public static Dictionary<int, Gallop.SkillData> lastSkill;  // 上一次的技能表
+        public static Dictionary<string, int> lastProper;    // 上一次的适性
 
         public static LogValue LastValue;   // 前一次调用时的总属性
         public static LogEvent LastEvent;   // 本次调用时已经结束的事件
@@ -194,6 +196,7 @@ namespace UmamusumeResponseAnalyzer.Game
             }
             lastSkill = new Dictionary<int, Gallop.SkillData>();
             lastSkillTips = new Dictionary<int, SkillTips>();
+            lastProper = new Dictionary<string, int>();
         }
 
         // 开始记录属性变化
@@ -215,7 +218,7 @@ namespace UmamusumeResponseAnalyzer.Game
                 LastEvent.SelectIndex = (int)@event.data.select_index;
             }
 
-            // 获取技能表
+            // 获取技能表和适性
             if (IsStart && @event.data.chara_info != null)
             {
                 var currentSkillTip = @event.data.chara_info.skill_tips_array.ToDictionary(x => x.group_id * 10 + x.rarity);
@@ -254,8 +257,8 @@ namespace UmamusumeResponseAnalyzer.Game
                                 var which = sks[0].Name.Contains("◎") ? 1 : 0;  // 排除双圈
                                 name = sks[which].Name;
                             }
-
-                            Print($"[violet]习得Hint {name} Lv.{old_level} -> {skill.level}[/]");
+                            if (skill.level > old_level)
+                                Print($"[violet]习得Hint {name} Lv.{old_level} -> {skill.level}[/]");
                             newTips.Add($"{name} Lv.{old_level} -> {skill.level}");
                         }        
                     }
@@ -264,6 +267,18 @@ namespace UmamusumeResponseAnalyzer.Game
 
                 lastSkill = currentSkill;
                 lastSkillTips = currentSkillTip;
+
+                var currProper = UpdateProper(@event);
+                if (lastProper.Count() == currProper.Count())
+                {
+                    string[] properText = ["", "G", "F", "E", "D", "C", "B", "A", "S"];
+                    foreach (var k in currProper.Keys)
+                    {
+                        if (lastProper.Keys.Contains(k) && lastProper[k] < currProper[k])
+                            Print($"[yellow]{k} 适性提升: {properText[lastProper[k]]} -> {properText[currProper[k]]}[/]");
+                    }
+                }
+                lastProper = currProper;
             }
 
             if (IsStart && @event.data.unchecked_event_array != null)
@@ -408,6 +423,30 @@ namespace UmamusumeResponseAnalyzer.Game
             }  // if LastEvent
             return false;
         }
+
+        /// <summary>
+        /// 读取适性
+        /// </summary>
+        /// <param name="event">当前事件</param>
+        /// <returns>新的适性数据</returns>
+        public static Dictionary<string, int> UpdateProper(SingleModeCheckEventResponse @event)
+        {
+            var chara = @event.data.chara_info;
+            return new Dictionary<string, int>
+            {
+                { I18N_Short, chara.proper_distance_short },
+                { I18N_Mile, chara.proper_distance_mile },
+                { I18N_Middle, chara.proper_distance_middle },
+                { I18N_Long, chara.proper_distance_long },
+                { I18N_Nige, chara.proper_running_style_nige },
+                { I18N_Oikomi, chara.proper_running_style_oikomi },
+                { I18N_Sashi, chara.proper_running_style_sashi },
+                { I18N_Senko, chara.proper_running_style_senko },
+                { I18N_Grass, chara.proper_ground_turf },
+                { I18N_Dirt, chara.proper_ground_dirt }
+            };
+        }
+
         // 当玩家选择选项时进行记录
         public static void UpdatePlayerChoice(Gallop.SingleModeChoiceRequest @event)
         {
@@ -426,7 +465,6 @@ namespace UmamusumeResponseAnalyzer.Game
                 }
             }            
         }
-
         public static List<string> PrintCardEventPerf(int scenario)
         {
             var ret = new List<string>();
